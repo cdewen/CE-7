@@ -1,0 +1,15 @@
+{
+  "originHash" : "d83b884b332e99db7d589d2c1633bbaea485140fafeb87b939f7b71da3bc6a82",
+  "pins" : [
+    {
+      "identity" : "onefingerrotation",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mttfntn/OneFingerRotation",
+      "state" : {
+        "branch" : "main",
+        "revision" : "3ac60f3dac88b7e1219b184e9b449a7e3c495ea9"
+      }
+    }
+  ],
+  "version" : 3
+}
