@@ -12,14 +12,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		B9554C502F47D182008ABAA6 /* TP7.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TP7.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B9554C502F47D182008ABAA6 /* CE - 7.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CE - 7.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B96E1E042F48ABBC0077E93B /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		B9554C522F47D182008ABAA6 /* TP7 */ = {
+		B9554C522F47D182008ABAA6 /* CE - 7 */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = TP7;
+			path = "CE - 7";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -40,7 +40,7 @@
 			isa = PBXGroup;
 			children = (
 				B96E1E042F48ABBC0077E93B /* Launch Screen.storyboard */,
-				B9554C522F47D182008ABAA6 /* TP7 */,
+				B9554C522F47D182008ABAA6 /* CE - 7 */,
 				B9554C512F47D182008ABAA6 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -48,7 +48,7 @@
 		B9554C512F47D182008ABAA6 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				B9554C502F47D182008ABAA6 /* TP7.app */,
+				B9554C502F47D182008ABAA6 /* CE - 7.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -56,9 +56,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		B9554C4F2F47D182008ABAA6 /* TP7 */ = {
+		B9554C4F2F47D182008ABAA6 /* CE - 7 */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B9554C5B2F47D183008ABAA6 /* Build configuration list for PBXNativeTarget "TP7" */;
+			buildConfigurationList = B9554C5B2F47D183008ABAA6 /* Build configuration list for PBXNativeTarget "CE - 7" */;
 			buildPhases = (
 				B9554C4C2F47D182008ABAA6 /* Sources */,
 				B9554C4D2F47D182008ABAA6 /* Frameworks */,
@@ -69,14 +69,14 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				B9554C522F47D182008ABAA6 /* TP7 */,
+				B9554C522F47D182008ABAA6 /* CE - 7 */,
 			);
-			name = TP7;
+			name = "CE - 7";
 			packageProductDependencies = (
 				B96E1E072F4A2B590077E93B /* OneFingerRotation */,
 			);
 			productName = TP7;
-			productReference = B9554C502F47D182008ABAA6 /* TP7.app */;
+			productReference = B9554C502F47D182008ABAA6 /* CE - 7.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -94,7 +94,7 @@
 					};
 				};
 			};
-			buildConfigurationList = B9554C4B2F47D182008ABAA6 /* Build configuration list for PBXProject "TP7" */;
+			buildConfigurationList = B9554C4B2F47D182008ABAA6 /* Build configuration list for PBXProject "CE-7" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -111,7 +111,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				B9554C4F2F47D182008ABAA6 /* TP7 */,
+				B9554C4F2F47D182008ABAA6 /* CE - 7 */,
 			);
 		};
 /* End PBXProject section */
@@ -343,7 +343,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		B9554C4B2F47D182008ABAA6 /* Build configuration list for PBXProject "TP7" */ = {
+		B9554C4B2F47D182008ABAA6 /* Build configuration list for PBXProject "CE-7" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B9554C592F47D183008ABAA6 /* Debug */,
@@ -352,7 +352,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		B9554C5B2F47D183008ABAA6 /* Build configuration list for PBXNativeTarget "TP7" */ = {
+		B9554C5B2F47D183008ABAA6 /* Build configuration list for PBXNativeTarget "CE - 7" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B9554C5C2F47D183008ABAA6 /* Debug */,
