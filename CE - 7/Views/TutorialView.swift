@@ -4,7 +4,7 @@ import AVFoundation
 struct TutorialView: View {
     @Binding var isPresented: Bool
     @State private var currentPage = 0
-    @State private var micPermission: AVAudioSession.RecordPermission = AVAudioSession.sharedInstance().recordPermission
+    @State private var micPermission: AVAudioApplication.recordPermission = AVAudioApplication.shared.recordPermission
 
     private let pages: [(icon: String, title: String, body: String)] = [
         (
@@ -45,7 +45,7 @@ struct TutorialView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-            micPermission = AVAudioSession.sharedInstance().recordPermission
+            micPermission = AVAudioApplication.shared.recordPermission
         }
     }
 
@@ -72,9 +72,9 @@ struct TutorialView: View {
                 Spacer()
 
                 Button {
-                    AVAudioSession.sharedInstance().requestRecordPermission { _ in
+                    AVAudioApplication.requestRecordPermission { _ in
                         DispatchQueue.main.async {
-                            micPermission = AVAudioSession.sharedInstance().recordPermission
+                            micPermission = AVAudioApplication.shared.recordPermission
                         }
                     }
                 } label: {
