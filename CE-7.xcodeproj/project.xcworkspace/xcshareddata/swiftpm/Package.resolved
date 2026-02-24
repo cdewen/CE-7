@@ -1,0 +1,15 @@
+{
+  "originHash" : "3fbd2bc3b1f46c0168d3219ab0d195969a1e6513a17a81e0ec0b235110344c03",
+  "pins" : [
+    {
+      "identity" : "cornerradiuskit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/cdewen/CornerRadiusKit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "07ff45b55b4edf6254f8e2befc8bcd51ac431b54"
+      }
+    }
+  ],
+  "version" : 3
+}

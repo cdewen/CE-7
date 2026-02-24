@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B96E1E052F48ABBC0077E93B /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B96E1E042F48ABBC0077E93B /* Launch Screen.storyboard */; };
+		B99C49A82F4E67A20008A67B /* CornerRadiusKit in Frameworks */ = {isa = PBXBuildFile; productRef = B99C49A72F4E67A20008A67B /* CornerRadiusKit */; };
 		B9BEC1DF2F4E0B3C0025909F /* CE - 7.icon in Resources */ = {isa = PBXBuildFile; fileRef = B9BEC1DE2F4E0B3C0025909F /* CE - 7.icon */; };
 /* End PBXBuildFile section */
 
@@ -30,6 +31,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B99C49A82F4E67A20008A67B /* CornerRadiusKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -74,6 +76,7 @@
 			);
 			name = "CE - 7";
 			packageProductDependencies = (
+				B99C49A72F4E67A20008A67B /* CornerRadiusKit */,
 			);
 			productName = TP7;
 			productReference = B9554C502F47D182008ABAA6 /* CE - 7.app */;
@@ -104,6 +107,7 @@
 			mainGroup = B9554C472F47D182008ABAA6;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				B99C49A62F4E67A20008A67B /* XCRemoteSwiftPackageReference "CornerRadiusKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B9554C512F47D182008ABAA6 /* Products */;
@@ -364,6 +368,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B99C49A62F4E67A20008A67B /* XCRemoteSwiftPackageReference "CornerRadiusKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/cdewen/CornerRadiusKit";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B99C49A72F4E67A20008A67B /* CornerRadiusKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B99C49A62F4E67A20008A67B /* XCRemoteSwiftPackageReference "CornerRadiusKit" */;
+			productName = CornerRadiusKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = B9554C482F47D182008ABAA6 /* Project object */;
 }

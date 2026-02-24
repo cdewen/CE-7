@@ -1,4 +1,5 @@
 import SwiftUI
+import CornerRadiusKit
 
 enum TiltButtonEdge {
     case leading
@@ -34,12 +35,7 @@ struct TiltButton: View {
     @State private var errorHapticTick = 0
     @State private var didHandleCurrentTouch = false
     
-    private static let screenCornerRadius: CGFloat = {
-        guard let screen = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .first?.screen else { return 44 }
-        return screen.value(forKey: "_displayCornerRadius") as? CGFloat ?? 44
-    }()
+    private static let screenCornerRadius: Double = Device.screenCornerRadius
     
     private var clipShape: TiltButtonShape {
         switch edge {
