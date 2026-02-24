@@ -1,8 +1,12 @@
 import SwiftUI
 import AVFoundation
 import Accelerate
-import Combine
 import SwiftData
+internal import Combine
+
+private func rmsToDecibels(_ rms: Float) -> Float {
+    20 * log10f(max(rms, 1e-7))
+}
 
 class TapeEngine: ObservableObject {
     @Published var state: RecorderState = .none
@@ -28,8 +32,6 @@ class TapeEngine: ObservableObject {
     private let playhead = PlayheadState()
     private var recordingSampleRate: Double = 48000
     private var displayLink: CADisplayLink?
-    private var playbackStartDate: Date?
-    private var playbackStartOffset: TimeInterval = 0
     private var recordingStartDate: Date?
     private var lastScrubTime: Double = 0
     private var lastScrubSample: Double = 0
@@ -112,8 +114,8 @@ class TapeEngine: ObservableObject {
                 rmsR = rmsL
             }
             DispatchQueue.main.async {
-                self.audioLevelL = 20 * log10f(max(rmsL, 1e-7))
-                self.audioLevelR = 20 * log10f(max(rmsR, 1e-7))
+                self.audioLevelL = rmsToDecibels(rmsL)
+                self.audioLevelR = rmsToDecibels(rmsR)
             }
         }
         try? engine.start()
@@ -140,8 +142,6 @@ class TapeEngine: ObservableObject {
                 }
                 isPaused = false
                 playhead.rate.pointee = 1.0
-                playbackStartOffset = currentTime
-                playbackStartDate = Date()
             }
         default: break
         }
@@ -208,8 +208,8 @@ class TapeEngine: ObservableObject {
             activateSession()
         }
 
-        samplesL.removeAll()
-        samplesR.removeAll()
+        samplesL.removeAll(keepingCapacity: true)
+        samplesR.removeAll(keepingCapacity: true)
         currentTime = 0
         recordingDuration = 0
         recordingStartDate = Date()
@@ -244,8 +244,8 @@ class TapeEngine: ObservableObject {
             var rmsR: Float = 0
             vDSP_measqv(chunkR, 1, &rmsR, vDSP_Length(n))
             rmsR = sqrtf(rmsR)
-            let dbL = 20 * log10f(max(rmsL, 1e-7))
-            let dbR = 20 * log10f(max(rmsR, 1e-7))
+            let dbL = rmsToDecibels(rmsL)
+            let dbR = rmsToDecibels(rmsR)
 
             self.sampleQueue.async {
                 self.samplesL.append(contentsOf: chunkL)
@@ -397,9 +397,6 @@ class TapeEngine: ObservableObject {
         engine.connect(src, to: engine.mainMixerNode, format: fmt)
 
         try? engine.start()
-
-        playbackStartDate = Date()
-        playbackStartOffset = 0
         startDisplayLink()
     }
 
@@ -512,8 +509,6 @@ class TapeEngine: ObservableObject {
             playhead.renderPos.pointee = samplePos
             playhead.target.pointee = samplePos
             playhead.rate.pointee = 1.0
-            playbackStartOffset = currentTime
-            playbackStartDate = Date()
         }
     }
 
@@ -551,14 +546,14 @@ class TapeEngine: ObservableObject {
             let win = 1024
             if idx >= 0 && idx + win < samplesL.count {
                 samplesL.withUnsafeBufferPointer { bufL in
-                    var rmsL: Float = 0
-                    vDSP_measqv(bufL.baseAddress! + idx, 1, &rmsL, vDSP_Length(win))
-                    audioLevelL = 20 * log10f(max(sqrtf(rmsL), 1e-7))
+                    var rms: Float = 0
+                    vDSP_measqv(bufL.baseAddress! + idx, 1, &rms, vDSP_Length(win))
+                    audioLevelL = rmsToDecibels(sqrtf(rms))
                 }
                 samplesR.withUnsafeBufferPointer { bufR in
-                    var rmsR: Float = 0
-                    vDSP_measqv(bufR.baseAddress! + idx, 1, &rmsR, vDSP_Length(win))
-                    audioLevelR = 20 * log10f(max(sqrtf(rmsR), 1e-7))
+                    var rms: Float = 0
+                    vDSP_measqv(bufR.baseAddress! + idx, 1, &rms, vDSP_Length(win))
+                    audioLevelR = rmsToDecibels(sqrtf(rms))
                 }
             }
         }
@@ -579,15 +574,7 @@ class TapeEngine: ObservableObject {
 
     var nextRecordingNumberForToday: Int {
         guard let modelContext else { return 1 }
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: Date())
-        guard let startOfNextDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else { return 1 }
-        let predicate = #Predicate<RecordingItem> { item in
-            item.recordedAt >= startOfDay && item.recordedAt < startOfNextDay
-        }
-        let descriptor = FetchDescriptor<RecordingItem>(predicate: predicate)
-        let count = (try? modelContext.fetchCount(descriptor)) ?? 0
-        return count + 1
+        return (try? recordingStorage.nextRecordingNumber(of: Date(), context: modelContext)) ?? 1
     }
 
     var formattedTime: String {

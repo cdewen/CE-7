@@ -1,14 +1,8 @@
 import SwiftUI
 
-struct ConcentricRectangle: Shape {
-    func path(in rect: CGRect) -> Path {
-        Path(rect)
-    }
-}
-
 struct MetalBackground: View {
     var body: some View {
-        ConcentricRectangle()
+        Rectangle()
             .foregroundStyle(
                 LinearGradient(
                     colors: [
@@ -20,7 +14,7 @@ struct MetalBackground: View {
                 )
             )
             .overlay(
-                ConcentricRectangle()
+                Rectangle()
                     .stroke(.white.opacity(0.6), lineWidth: 15)
                     .blur(radius: 8)
                     .mask(
@@ -30,10 +24,10 @@ struct MetalBackground: View {
                             endPoint: .trailing
                         )
                     )
-                    .clipShape(ConcentricRectangle())
+                    .clipShape(Rectangle())
             )
             .overlay(
-                ConcentricRectangle()
+                Rectangle()
                     .stroke(.white.opacity(0.6), lineWidth: 15)
                     .blur(radius: 8)
                     .mask(
@@ -43,10 +37,10 @@ struct MetalBackground: View {
                             endPoint: .bottom
                         )
                     )
-                    .clipShape(ConcentricRectangle())
+                    .clipShape(Rectangle())
             )
             .overlay(
-                ConcentricRectangle()
+                Rectangle()
                     .stroke(.black.opacity(0.5), lineWidth: 15)
                     .blur(radius: 8)
                     .mask(
@@ -63,7 +57,7 @@ struct MetalBackground: View {
                             endPoint: .top
                         )
                     )
-                    .clipShape(ConcentricRectangle())
+                    .clipShape(Rectangle())
             )
             .overlay(
                 Rectangle()

@@ -35,10 +35,11 @@ struct ContentView: View {
                         } label: {
                             Display(
                                 timeText: engine.formattedTime,
-                                timeValue: engine.currentTime,
                                 dayText: displayDayText,
-                                recordingNumber: displayRecordingNumber
+                                recordingNumber: displayRecordingNumber,
+                                animatedTimeValue: engine.currentTime
                             )
+                            .fixedSize()
                                 .matchedTransitionSource(id: "display-recordings", in: transitionNamespace)
                         }
                         .buttonStyle(.plain)

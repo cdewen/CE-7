@@ -2,18 +2,13 @@ import SwiftUI
 
 struct Display: View {
     let timeText: String
-    let timeValue: Double
     let dayText: String
     let recordingNumber: Int
+    var animatedTimeValue: Double? = nil
 
     var body: some View {
         VStack(spacing: 4) {
-            Text(timeText)
-                .font(.system(size: 24, design: .monospaced).bold())
-                .textCase(.uppercase)
-                .kerning(2)
-                .contentTransition(.numericText(value: -timeValue))
-                .animation(.default, value: timeText)
+            timeLabel
             
             HStack {
                 Text(dayText)
@@ -36,7 +31,22 @@ struct Display: View {
         .foregroundColor(.white)
         .background(Color.black)
         .cornerRadius(8)
-        .fixedSize()
         .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 8))
+    }
+
+    @ViewBuilder
+    private var timeLabel: some View {
+        let base = Text(timeText)
+            .font(.system(size: 24, design: .monospaced).bold())
+            .textCase(.uppercase)
+            .kerning(2)
+
+        if let value = animatedTimeValue {
+            base
+                .contentTransition(.numericText(value: -value))
+                .animation(.default, value: timeText)
+        } else {
+            base
+        }
     }
 }

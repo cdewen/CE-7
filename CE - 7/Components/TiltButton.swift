@@ -7,7 +7,6 @@ enum TiltButtonEdge {
 }
 
 struct TiltButtonShape: Shape {
-    let edge: TiltButtonEdge
     let topLeadingRadius: CGFloat
     let topTrailingRadius: CGFloat
     let bottomLeadingRadius: CGFloat
@@ -46,7 +45,6 @@ struct TiltButton: View {
         switch edge {
         case .leading:
             TiltButtonShape(
-                edge: .leading,
                 topLeadingRadius: 4,
                 topTrailingRadius: 4,
                 bottomLeadingRadius: Self.screenCornerRadius,
@@ -54,7 +52,6 @@ struct TiltButton: View {
             )
         case .center:
             TiltButtonShape(
-                edge: .center,
                 topLeadingRadius: 4,
                 topTrailingRadius: 4,
                 bottomLeadingRadius: 0,
@@ -62,7 +59,6 @@ struct TiltButton: View {
             )
         case .trailing:
             TiltButtonShape(
-                edge: .trailing,
                 topLeadingRadius: 4,
                 topTrailingRadius: 4,
                 bottomLeadingRadius: 0,

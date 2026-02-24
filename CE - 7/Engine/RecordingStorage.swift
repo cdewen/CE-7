@@ -34,10 +34,8 @@ struct RecordingStorage {
 
         buffer.frameLength = AVAudioFrameCount(frameCount)
         if let left = buffer.floatChannelData?[0], let right = buffer.floatChannelData?[1] {
-            for i in 0..<frameCount {
-                left[i] = samplesL[i]
-                right[i] = samplesR[i]
-            }
+            samplesL.withUnsafeBufferPointer { left.update(from: $0.baseAddress!, count: frameCount) }
+            samplesR.withUnsafeBufferPointer { right.update(from: $0.baseAddress!, count: frameCount) }
         }
 
         let file = try AVAudioFile(
@@ -118,7 +116,7 @@ struct RecordingStorage {
         return folder
     }
 
-    private func nextRecordingNumber(of recordedAt: Date, context: ModelContext) throws -> Int {
+    func nextRecordingNumber(of recordedAt: Date, context: ModelContext) throws -> Int {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: recordedAt)
         guard let startOfNextDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {

@@ -20,34 +20,11 @@ struct RecordingsListView: View {
                         engine.playRecording(recording)
                         dismiss()
                     } label: {
-                        VStack(spacing: 4) {
-                            Text(formattedDuration(recording.duration))
-                                .font(.system(size: 24, design: .monospaced).bold())
-                                .textCase(.uppercase)
-                                .kerning(2)
-
-                            HStack {
-                                Text(dayLabel(for: recording.recordedAt))
-                                    .font(.system(size: 16, design: .monospaced))
-                                    .textCase(.uppercase)
-
-                                Spacer()
-
-                                Text(recording.recordingNumberOfDay, format: .number.precision(.integerLength(2)))
-                                    .font(.system(size: 12, design: .monospaced))
-                                    .textCase(.uppercase)
-                                    .foregroundColor(.black)
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Color.white)
-                                    .cornerRadius(4)
-                            }
-                        }
-                        .padding(12)
-                        .foregroundColor(.white)
-                        .background(Color.black)
-                        .cornerRadius(8)
-                        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 8))
+                        Display(
+                            timeText: formattedDuration(recording.duration),
+                            dayText: dayLabel(for: recording.recordedAt),
+                            recordingNumber: recording.recordingNumberOfDay
+                        )
                     }
                     .buttonStyle(.plain)
                     .listRowSeparator(.hidden)
