@@ -8,12 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		B96E1E052F48ABBC0077E93B /* Launch Screen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B96E1E042F48ABBC0077E93B /* Launch Screen.storyboard */; };
-		B96E1E082F4A2B590077E93B /* OneFingerRotation in Frameworks */ = {isa = PBXBuildFile; productRef = B96E1E072F4A2B590077E93B /* OneFingerRotation */; };
+		B9BEC1DF2F4E0B3C0025909F /* CE - 7.icon in Resources */ = {isa = PBXBuildFile; fileRef = B9BEC1DE2F4E0B3C0025909F /* CE - 7.icon */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		B9554C502F47D182008ABAA6 /* CE - 7.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CE - 7.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B96E1E042F48ABBC0077E93B /* Launch Screen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = "Launch Screen.storyboard"; sourceTree = "<group>"; };
+		B9BEC1DE2F4E0B3C0025909F /* CE - 7.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "CE - 7.icon"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -29,7 +30,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B96E1E082F4A2B590077E93B /* OneFingerRotation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -42,6 +42,7 @@
 				B96E1E042F48ABBC0077E93B /* Launch Screen.storyboard */,
 				B9554C522F47D182008ABAA6 /* CE - 7 */,
 				B9554C512F47D182008ABAA6 /* Products */,
+				B9BEC1DE2F4E0B3C0025909F /* CE - 7.icon */,
 			);
 			sourceTree = "<group>";
 		};
@@ -73,7 +74,6 @@
 			);
 			name = "CE - 7";
 			packageProductDependencies = (
-				B96E1E072F4A2B590077E93B /* OneFingerRotation */,
 			);
 			productName = TP7;
 			productReference = B9554C502F47D182008ABAA6 /* CE - 7.app */;
@@ -104,7 +104,6 @@
 			mainGroup = B9554C472F47D182008ABAA6;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				B96E1E062F4A2B590077E93B /* XCRemoteSwiftPackageReference "OneFingerRotation" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B9554C512F47D182008ABAA6 /* Products */;
@@ -121,6 +120,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9BEC1DF2F4E0B3C0025909F /* CE - 7.icon in Resources */,
 				B96E1E052F48ABBC0077E93B /* Launch Screen.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -263,7 +263,7 @@
 		B9554C5C2F47D183008ABAA6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "CE - 7";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
@@ -303,7 +303,7 @@
 		B9554C5D2F47D183008ABAA6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = "CE - 7";
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
@@ -362,25 +362,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		B96E1E062F4A2B590077E93B /* XCRemoteSwiftPackageReference "OneFingerRotation" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/mttfntn/OneFingerRotation";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		B96E1E072F4A2B590077E93B /* OneFingerRotation */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B96E1E062F4A2B590077E93B /* XCRemoteSwiftPackageReference "OneFingerRotation" */;
-			productName = OneFingerRotation;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = B9554C482F47D182008ABAA6 /* Project object */;
 }
