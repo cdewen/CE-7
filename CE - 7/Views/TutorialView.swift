@@ -168,7 +168,7 @@ struct TutorialView: View {
                 }
                 .font(.system(size: 15, design: .monospaced))
                 .foregroundStyle(.white.opacity(0.5))
-                .padding(.bottom, 16)
+                .padding(.bottom, 32)
             } else {
                 Color.clear.frame(height: 35)
             }
