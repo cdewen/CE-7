@@ -6,48 +6,96 @@
 //
 
 import SwiftUI
+import SwiftData
 
 // MARK: - Main Content View
 
 struct ContentView: View {
+    @Environment(\.modelContext) private var modelContext
+    @StateObject private var engine = TapeEngine()
+    @Namespace private var transitionNamespace
+    
+    private var displayDayText: String {
+        guard engine.state == .playback, let activeDate = engine.activeRecordingDate else {
+            return "Today"
+        }
+        return dayLabel(for: activeDate)
+    }
+    
+    private var displayRecordingNumber: Int {
+        if engine.state == .playback, let activeNumber = engine.activeRecordingNumberOfDay {
+            return activeNumber
+        }
+        return engine.nextRecordingNumberForToday
+    }
+
     var body: some View {
-        ZStack {
-            MetalBackground()
-            
-            VStack {
-                HStack {
-                    Spacer()
-                    Display()
+        NavigationStack {
+            ZStack {
+                MetalBackground()
+                
+                VStack {
+                    HStack {
+                        Spacer()
+                        NavigationLink {
+                            RecordingsListView()
+                                .environmentObject(engine)
+                                .navigationTransition(.zoom(sourceID: "display-recordings", in: transitionNamespace))
+                        } label: {
+                            Display(
+                                timeText: engine.formattedTime,
+                                timeValue: engine.currentTime,
+                                dayText: displayDayText,
+                                recordingNumber: displayRecordingNumber
+                            )
+                                .matchedTransitionSource(id: "display-recordings", in: transitionNamespace)
+                        }
+                        .buttonStyle(.plain)
                         .padding(.top, 50)
                         .padding(.trailing, 20)
-                }
-                .padding(.top, 32)
-                
-                Spacer()
-                
-                TapeReel()
-                    .padding(.horizontal)
-                
-                
-                HStack {
-                    Light(isOn: false)
-                    Spacer()
-                }
-                .padding(.bottom, 32)
-                
-                GeometryReader { geo in
-                    HStack(spacing: 0) {
-                        ButtonPanel()
-                            .frame(width: geo.size.width * 0.75)
-                        
-                        BarPanel()
-                            .frame(width: geo.size.width * 0.25)
                     }
+                    .padding(.top, 32)
+                    
+                    Spacer()
+                    
+                    TapeReel(engine: engine)
+                        .padding(.horizontal)
+                    
+                    
+                    HStack {
+                        Light(state: engine.state)
+                        Spacer()
+                    }
+                    .padding(.bottom, 32)
+                    
+                    GeometryReader { geo in
+                        HStack(spacing: 0) {
+                            ButtonPanel(
+                                state: engine.state,
+                                isPaused: engine.isPaused,
+                                onPrime: engine.prime,
+                                onPlay: engine.play,
+                                onStop: engine.stop
+                            )
+                                .frame(width: geo.size.width * 0.75)
+                            
+                            BarPanel(
+                                leftLevel: engine.normalisedLevelL,
+                                rightLevel: engine.normalisedLevelR
+                            )
+                                .frame(width: geo.size.width * 0.25)
+                        }
+                    }
+                    .frame(height: 200)
                 }
-                .frame(height: 200)
             }
+            .ignoresSafeArea()
+            .onAppear {
+                engine.configureStorage(modelContext: modelContext)
+            }
+            .toolbar(.hidden, for: .navigationBar)
+            .sensoryFeedback(.error, trigger: engine.scrubBoundaryHit)
         }
-        .ignoresSafeArea()
     }
 }
 
@@ -95,21 +143,28 @@ struct Screw: View {
 //MARK: - Display
 
 struct Display: View {
+    let timeText: String
+    let timeValue: Double
+    let dayText: String
+    let recordingNumber: Int
+
     var body: some View {
         VStack(spacing: 4) {
-            Text("0:00:00")
+            Text(timeText)
                 .font(.system(size: 24, design: .monospaced).bold())
                 .textCase(.uppercase)
                 .kerning(2)
+                .contentTransition(.numericText(value: -timeValue))
+                .animation(.default, value: timeText)
             
             HStack {
-                Text("Today")
+                Text(dayText)
                     .font(.system(size: 16, design: .monospaced))
                     .textCase(.uppercase)
                 
                 Spacer()
                 
-                Text("01")
+                Text(recordingNumber, format: .number.precision(.integerLength(2)))
                     .font(.system(size: 12, design: .monospaced))
                     .textCase(.uppercase)
                     .foregroundColor(.black)
@@ -131,7 +186,7 @@ struct Display: View {
 //MARK: - Light
 
 struct Light: View {
-    @State var isOn: Bool
+    let state: RecorderState
 
     private var gradient: some ShapeStyle {
         if isOn {
@@ -159,47 +214,94 @@ struct Light: View {
         }
     }
 
+    private var isOn: Bool {
+        switch state {
+        case .recording:
+            return true
+        case .primed:
+            // 0.8s cadence keeps attention without feeling frantic.
+            return (Int(Date().timeIntervalSinceReferenceDate / 0.4) % 2) == 0
+        case .none, .playback:
+            return false
+        }
+    }
+
     var body: some View {
-        Circle()
-            .foregroundStyle(gradient)
-            .overlay(
-                Circle()
-                    .strokeBorder(
-                            AnyShapeStyle(LinearGradient(
-                                    stops: [
-                                        .init(color: .white, location: 0),
-                                        .init(color: .black.opacity(0.2), location: 0.5),
-                                        .init(color: .white, location: 1)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                  )),
-                            lineWidth: 1.5
-                        )
-                    .opacity(isOn ? 0.8 : 1.0)
-            )
-            .frame(width: 36)
-            //TODO: figure out best glasseffect stlye
-            //.glassEffect(isOn ? .clear : .regular)
-            .shadow(color: isOn ? .recording.opacity(0.8) : .clear, radius: 6, x: 0, y: 0)
-            .padding(.leading, 30)
-            .padding(.bottom, 8)
-            .onTapGesture {
-                withAnimation() {
-                    isOn.toggle()
-                }
-            }
+        TimelineView(.periodic(from: .now, by: 0.2)) { _ in
+            Circle()
+                .foregroundStyle(gradient)
+                .overlay(
+                    Circle()
+                        .strokeBorder(
+                                AnyShapeStyle(LinearGradient(
+                                        stops: [
+                                            .init(color: .white, location: 0),
+                                            .init(color: .black.opacity(0.2), location: 0.5),
+                                            .init(color: .white, location: 1)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                      )),
+                                lineWidth: 1.5
+                            )
+                        .opacity(isOn ? 0.8 : 1.0)
+                )
+                .frame(width: 36)
+                .shadow(color: isOn ? .recording.opacity(0.8) : .clear, radius: 6, x: 0, y: 0)
+                .padding(.leading, 30)
+                .padding(.bottom, 8)
+                .animation(.easeInOut(duration: 0.15), value: isOn)
+        }
     }
 }
 
 // MARK: - Button Panel (Left Side)
 
 struct ButtonPanel: View {
+    let state: RecorderState
+    let isPaused: Bool
+    let onPrime: () -> Void
+    let onPlay: () -> Void
+    let onStop: () -> Void
+
+    private var canPrime: Bool {
+        state == .none || state == .primed || state == .playback
+    }
+
+    private var canPlay: Bool {
+        state == .primed || state == .none || (state == .playback && isPaused)
+    }
+
+    private var canStop: Bool {
+        state == .recording || state == .playback
+    }
+
     var body: some View {
         HStack(spacing: 4) {
-            TiltButton(icon: "circle.fill", iconColor: .accent, edge: .leading)
-            TiltButton(icon: "play.fill")
-            TiltButton(icon: "stop.fill")
+            TiltButton(
+                icon: "circle.fill",
+                iconColor: .accentColor,
+                edge: .leading,
+                isEnabled: canPrime,
+                action: onPrime,
+                disabledAction: { print("Prime not available in state: \(state)") }
+            )
+            TiltButton(
+                icon: "play.fill",
+                iconColor: .black.opacity(0.65),
+                edge: .center,
+                isEnabled: canPlay,
+                action: onPlay,
+                disabledAction: { print("Play not available in state: \(state)") }
+            )
+            TiltButton(
+                icon: "stop.fill",
+                iconColor: .black.opacity(0.65),
+                edge: .trailing,
+                isEnabled: canStop,
+                action: onStop,
+                disabledAction: { print("Stop not available in state: \(state)") }
+            )
         }
         .padding(.top, 4)
         .padding(.trailing, 4)
@@ -252,15 +354,20 @@ struct TiltButton: View {
     let icon: String
     var iconColor: Color = .black.opacity(0.7)
     var edge: TiltButtonEdge = .center
+    var isEnabled: Bool = true
+    var action: () -> Void = {}
+    var disabledAction: () -> Void = {}
     @State private var isPressed = false
+    @State private var hapticTick = 0
+    @State private var errorHapticTick = 0
+    @State private var didHandleCurrentTouch = false
     
-    /// Reads the display corner radius from the first connected screen (private UIKit key, falls back to 44)
-    private var screenCornerRadius: CGFloat {
+    private static let screenCornerRadius: CGFloat = {
         guard let screen = UIApplication.shared.connectedScenes
             .compactMap({ $0 as? UIWindowScene })
             .first?.screen else { return 44 }
         return screen.value(forKey: "_displayCornerRadius") as? CGFloat ?? 44
-    }
+    }()
     
     private var clipShape: TiltButtonShape {
         switch edge {
@@ -269,7 +376,7 @@ struct TiltButton: View {
                 edge: .leading,
                 topLeadingRadius: 4,
                 topTrailingRadius: 4,
-                bottomLeadingRadius: screenCornerRadius,
+                bottomLeadingRadius: Self.screenCornerRadius,
                 bottomTrailingRadius: 0
             )
         case .center:
@@ -346,29 +453,51 @@ struct TiltButton: View {
             }
             .clipShape(clipShape)
             .rotation3DEffect(
-                .degrees(isPressed ? -8 : 0),
+                .degrees(isPressed && isEnabled ? -8 : 0),
                 axis: (x: 1, y: 0, z: 0),
                 anchor: .top,
                 perspective: 0.5
             )
-            .onTapGesture {
-                // Quick tilt down
-                withAnimation(.spring(response: 0.15, dampingFraction: 0.8)) {
-                    isPressed = true
-                }
-                // Hold briefly, then slowly spring back
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.5)) {
-                        isPressed = false
+            .animation(
+                isPressed
+                    ? .spring(response: 0.15, dampingFraction: 0.8)
+                    : .spring(response: 0.5, dampingFraction: 0.5),
+                value: isPressed
+            )
+            .sensoryFeedback(.impact(weight: .medium), trigger: hapticTick)
+            .sensoryFeedback(.error, trigger: errorHapticTick)
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        guard !didHandleCurrentTouch else { return }
+                        didHandleCurrentTouch = true
+                        guard isEnabled else {
+                            disabledAction()
+                            errorHapticTick += 1
+                            return
+                        }
+                        hapticTick += 1
+                        withAnimation(.spring(response: 0.15, dampingFraction: 0.8)) {
+                            isPressed = true
+                        }
                     }
-                }
-            }
+                    .onEnded { _ in
+                        defer { didHandleCurrentTouch = false }
+                        withAnimation(.spring(response: 0.5, dampingFraction: 0.5)) {
+                            isPressed = false
+                        }
+                        guard isEnabled else { return }
+                        action()
+                    }
+            )
     }
 }
 
 // MARK: - Rail Panel (Right Side)
 
 struct BarPanel: View {
+    let leftLevel: CGFloat
+    let rightLevel: CGFloat
     @State private var barsHeight: CGFloat = 0
     
     var body: some View {
@@ -381,9 +510,9 @@ struct BarPanel: View {
             
             HStack {
                 Spacer()
-                AudioBars(decibel: 12)
+                AudioBars(level: leftLevel)
                 Spacer()
-                AudioBars(decibel: 3)
+                AudioBars(level: rightLevel)
                 Spacer()
             }
             .background(
@@ -403,7 +532,7 @@ struct BarPanel: View {
 // MARK: - Metal Rail (Vertical Lines)
 
 struct AudioBars: View {
-    var decibel: CGFloat = 0
+    var level: CGFloat = 0
     
     var body: some View {
         Rectangle()
@@ -422,15 +551,15 @@ struct AudioBars: View {
             .cornerRadius(8)
             .overlay {
                 GeometryReader { geo in
-                    let fillRatio = min(decibel / 14, 1)
+                    let fillRatio = min(max(level, 0), 1)
                     let fillHeight = geo.size.height * fillRatio
-                    let redThreshold: CGFloat = 10.0 / 14.0
-                    let hasRed = decibel > 10
+                    let redThreshold: CGFloat = 0.7
+                    let hasRed = fillRatio > redThreshold
                     let redHeight = hasRed ? geo.size.height * (fillRatio - redThreshold) : 0
                     let whiteHeight = fillHeight - redHeight
                     
                     VStack(spacing: 0) {
-                        // Red portion (above 10 dB)
+                        // Red portion (above 0.7 normalised)
                         if hasRed {
                             Rectangle()
                                 .clipShape(UnevenRoundedRectangle(topLeadingRadius: 8, bottomLeadingRadius: 0, bottomTrailingRadius: 0, topTrailingRadius: 8))
@@ -439,9 +568,9 @@ struct AudioBars: View {
                                 .frame(height: redHeight)
                         }
                         
-                        // White portion (up to 10 dB)
+                        // White portion (up to 0.7 normalised)
                         Rectangle()
-                            .clipShape(UnevenRoundedRectangle(topLeadingRadius: fillRatio > 10/14 ? 0 : 8, bottomLeadingRadius: 8, bottomTrailingRadius: 8, topTrailingRadius:fillRatio > 10/14 ? 0 : 8))
+                            .clipShape(UnevenRoundedRectangle(topLeadingRadius: hasRed ? 0 : 8, bottomLeadingRadius: 8, bottomTrailingRadius: 8, topTrailingRadius: hasRed ? 0 : 8))
                             .shadow(color: .white, radius: 2, x: 0, y: 0)
                             .foregroundStyle(Color.white.opacity(0.85))
                             .frame(height: whiteHeight)
@@ -567,8 +696,17 @@ struct MetalBackground: View {
 
 //MARK: - Tape Reel
 struct TapeReel: View {
-    @State private var angle: CGFloat = 0
-    @State private var lastAngle: CGFloat = 0
+    @ObservedObject var engine: TapeEngine
+    @State private var prevAngle: Double = 0
+    @State private var accumulated: Double = 0
+    @State private var dragStartTime: TimeInterval = 0
+    @State private var dragStartDisplayAngle: Double = 0
+    @State private var hasDragStarted = false
+    @State private var reelHapticTick = 0
+    @State private var lastHapticAccumulated: Double = 0
+    private let reelHapticStepDegrees: Double = 14
+    
+    private var displayAngle: Double { engine.angleOffset + engine.currentTime * 180 }
     
     var body: some View {
         GeometryReader { outerGeo in
@@ -700,21 +838,64 @@ struct TapeReel: View {
                             )
                     }
                 }
-                .rotationEffect(.degrees(Double(angle)))
+                .rotationEffect(.degrees(displayAngle))
             }
             .contentShape(Circle())
+            .sensoryFeedback(.impact(weight: .light), trigger: reelHapticTick)
             .gesture(
-                DragGesture()
+                DragGesture(minimumDistance: 0)
                     .onChanged { v in
-                        var theta = (
-                            atan2(v.location.x - half, half - v.location.y) -
-                            atan2(v.startLocation.x - half, half - v.startLocation.y)
-                        ) * 180 / .pi
-                        if theta < 0 { theta += 360 }
-                        angle = theta + lastAngle
+                        let cur = atan2(v.location.x - half, half - v.location.y) * 180 / .pi
+
+                        if !hasDragStarted {
+                            let start = atan2(v.startLocation.x - half, half - v.startLocation.y) * 180 / .pi
+                            prevAngle = start
+                            accumulated = 0
+                            lastHapticAccumulated = 0
+                            dragStartTime = engine.currentTime
+                            dragStartDisplayAngle = displayAngle
+                            hasDragStarted = true
+                            if engine.state == .recording || engine.state == .playback {
+                                engine.beginScrub()
+                            }
+                        }
+
+                        var delta = cur - prevAngle
+                        if delta > 180 { delta -= 360 }
+                        if delta < -180 { delta += 360 }
+                        prevAngle = cur
+                        
+                        let proposedAccumulated = accumulated + delta
+                        
+                        if engine.state == .recording || engine.state == .playback {
+                            let proposedTime = dragStartTime + (proposedAccumulated / 180.0)
+                            let boundedTime = min(max(proposedTime, 0), engine.recordingDuration)
+                            let boundedAccumulated = (boundedTime - dragStartTime) * 180.0
+                            
+                            // Hard stop at scrub boundaries: ignore extra drag beyond limits.
+                            guard boundedAccumulated != accumulated else { return }
+                            accumulated = boundedAccumulated
+                            engine.scrubTo(time: boundedTime)
+                        } else {
+                            // Free spin when idle/primed: only update visual angle.
+                            accumulated = proposedAccumulated
+                            engine.angleOffset = dragStartDisplayAngle + accumulated
+                        }
+                        
+                        let hapticDelta = accumulated - lastHapticAccumulated
+                        let hapticSteps = Int(abs(hapticDelta) / reelHapticStepDegrees)
+                        if hapticSteps > 0 {
+                            reelHapticTick += hapticSteps
+                            let direction = hapticDelta.sign == .minus ? -1.0 : 1.0
+                            lastHapticAccumulated += direction * Double(hapticSteps) * reelHapticStepDegrees
+                        }
                     }
                     .onEnded { _ in
-                        lastAngle = angle
+                        if hasDragStarted, engine.state == .recording || engine.state == .playback {
+                            engine.endScrub()
+                        }
+                        hasDragStarted = false
+                        lastHapticAccumulated = 0
                     }
             )
         }
@@ -722,5 +903,6 @@ struct TapeReel: View {
 }
 
 #Preview {
-   ContentView()
+    ContentView()
+        .modelContainer(for: RecordingItem.self, inMemory: true)
 }
