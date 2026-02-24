@@ -22,6 +22,10 @@ struct TP7App: App {
                 .onAppear {
                     if !hasSeenTutorial {
                         showTutorial = true
+                    }
+                }
+                .onChange(of: showTutorial) { _, newValue in
+                    if !newValue {
                         hasSeenTutorial = true
                     }
                 }
