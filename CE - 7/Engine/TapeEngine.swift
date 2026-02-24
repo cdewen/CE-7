@@ -4,52 +4,6 @@ import Accelerate
 import Combine
 import SwiftData
 
-// MARK: - State
-
-enum RecorderState: String {
-    case none, primed, recording, playback
-}
-
-// MARK: - Shared Helpers
-
-func dayLabel(for date: Date) -> String {
-    if Calendar.current.isDateInToday(date) {
-        return "Today"
-    }
-    return date.formatted(.dateTime.month(.abbreviated).day())
-}
-
-// MARK: - Thread-safe playhead for real-time audio
-
-/// Shared state between the real-time render thread and main thread.
-/// Uses raw pointers so the render block never touches Swift objects.
-final class PlayheadState {
-    /// Current render position in samples (owned by render thread)
-    let renderPos: UnsafeMutablePointer<Double>
-    /// Playback rate: 1.0 = normal, 0.5 = half speed, -1.0 = reverse, 0 = stopped
-    let rate: UnsafeMutablePointer<Double>
-    /// Target position the render block should converge toward (prevents drift during scrub)
-    let target: UnsafeMutablePointer<Double>
-    /// Total sample count available
-    let sampleCount: UnsafeMutablePointer<Int>
-
-    init() {
-        renderPos = .allocate(capacity: 1);   renderPos.initialize(to: 0)
-        rate = .allocate(capacity: 1);        rate.initialize(to: 0)
-        target = .allocate(capacity: 1);      target.initialize(to: 0)
-        sampleCount = .allocate(capacity: 1); sampleCount.initialize(to: 0)
-    }
-
-    deinit {
-        renderPos.deinitialize(count: 1);   renderPos.deallocate()
-        rate.deinitialize(count: 1);        rate.deallocate()
-        target.deinitialize(count: 1);      target.deallocate()
-        sampleCount.deinitialize(count: 1); sampleCount.deallocate()
-    }
-}
-
-// MARK: - Audio Engine
-
 class TapeEngine: ObservableObject {
     @Published var state: RecorderState = .none
     @Published var currentTime: TimeInterval = 0
@@ -184,7 +138,6 @@ class TapeEngine: ObservableObject {
                     playhead.renderPos.pointee = 0
                     playhead.target.pointee = 0
                 }
-                // Resume from pause
                 isPaused = false
                 playhead.rate.pointee = 1.0
                 playbackStartOffset = currentTime
@@ -239,10 +192,8 @@ class TapeEngine: ObservableObject {
         case .recording: stopRecording()
         case .playback:
             if isPaused {
-                // Already paused — fully stop and reset
                 fullStopPlayback()
             } else {
-                // Playing — pause it
                 pausePlayback()
             }
         default: break
@@ -391,7 +342,7 @@ class TapeEngine: ObservableObject {
 
         playhead.renderPos.pointee = 0
         playhead.target.pointee = 0
-        playhead.rate.pointee = 1.0  // normal speed forward
+        playhead.rate.pointee = 1.0
 
         let pL = rawL!
         let pR = rawR!
@@ -412,9 +363,6 @@ class TapeEngine: ObservableObject {
             let rate = ph.rate.pointee
             let target = ph.target.pointee
 
-            // During scrub (rate is set by main thread from drag velocity):
-            // Gently correct toward target to prevent drift.
-            // During normal playback (rate=1.0): no correction needed.
             let drift = target - pos
             let needsCorrection = abs(rate) < 0.99 || abs(rate) > 1.01
             let correctionPerFrame = needsCorrection ? (drift / Double(frames)) * 0.15 : 0.0
@@ -487,7 +435,6 @@ class TapeEngine: ObservableObject {
     /// Called when playback reaches the end naturally
     private func stopPlayback() {
         guard state == .playback, !isDragging else { return }
-        // Keep transport loaded at end so pressing play restarts quickly.
         isPaused = true
         playhead.rate.pointee = 0
         playhead.renderPos.pointee = Double(samplesL.count)
@@ -530,18 +477,14 @@ class TapeEngine: ObservableObject {
             let dt = now - lastScrubTime
 
             if dt > 0.001 {
-                // Compute how fast the user is scrubbing as a playback rate:
-                // rate = (samples moved) / (samples that would play in elapsed time)
                 let sampleDelta = newSample - lastScrubSample
                 let expectedSamples = dt * recordingSampleRate
                 let newRate = sampleDelta / expectedSamples
 
-                // Smooth the rate to avoid jarring jumps
                 let currentRate = playhead.rate.pointee
                 playhead.rate.pointee = currentRate * 0.3 + newRate * 0.7
             }
 
-            // Set target so drift correction keeps render position in sync
             playhead.target.pointee = min(max(newSample, 0), Double(rawCount))
 
             lastScrubTime = now
@@ -565,7 +508,6 @@ class TapeEngine: ObservableObject {
             recordingDuration = Double(truncatedCount) / sampleRate
             recordingStartDate = Date().addingTimeInterval(-currentTime)
         } else if state == .playback {
-            // Snap render position to where the user released and resume normal speed
             let samplePos = currentTime * recordingSampleRate
             playhead.renderPos.pointee = samplePos
             playhead.target.pointee = samplePos
@@ -597,7 +539,6 @@ class TapeEngine: ObservableObject {
 
         if state == .playback {
             if !isDragging {
-                // Read actual playhead from the render thread
                 currentTime = playhead.renderPos.pointee / recordingSampleRate
             }
 
